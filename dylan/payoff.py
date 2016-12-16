@@ -1,5 +1,6 @@
 import abc
 from numpy import maximum
+import numpy as np
 
 class Payoff(object, metaclass=abc.ABCMeta):
     """
@@ -41,7 +42,7 @@ class VanillaPayoff(Payoff):
     @property
     def expiry(self):
         """
-        The option's expiration date.
+        The option's expiry.
 
         """
         return self.__expiry
@@ -53,10 +54,10 @@ class VanillaPayoff(Payoff):
     @property
     def strike(self):
         """
-        The option's strike price.
+        The option's strike.
 
         Args:
-            new_Strike (float): a new strike price when setting value
+            new_Strike: a new strike price
 
         """
 
@@ -66,6 +67,31 @@ class VanillaPayoff(Payoff):
     def strike(self, new_strike):
         self.__strike = new_strike
 
+    def payoff(self, spot):
+        return self.__payoff(self, spot)
+        
+class ExoticPayoff(Payoff):
+    def __init__(self, expiry, strike, payoff):
+        self.__expiry = expiry
+        self.__strike = strike
+        self.__payoff = payoff
+        
+    @property
+    def expiry(self):
+        return self.__expiry
+
+    @expiry.setter
+    def expiry(self, new_expiry):
+        self.__expiry = new_expiry
+    
+    @property 
+    def strike(self):
+        return self.__strike
+    
+    @strike.setter
+    def strike(self, new_strike):
+        self.__strike = new_strike
+        
     def payoff(self, spot):
         return self.__payoff(self, spot)
 
@@ -82,7 +108,6 @@ def call_payoff(option, spot):
 
     return maximum(spot - option.strike, 0.0)
 
-
 def put_payoff(option, spot):
     """
     The payoff function for a European put option.
@@ -93,5 +118,27 @@ def put_payoff(option, spot):
     """
 
     return maximum(option.strike - spot, 0.0)
+    
+def Lookback_Call_Payoff(strike, spot):
+    """
+    The payoff function for a European lookback call option. 
+
+    Args:
+        option:       the self variable from the Payoff class that aggregates the function.
+        spot (array): the price path of the underlying asset
+    """
+    
+    return maximum(np.amax(spot) - strike, 0.0)
+    
+def Lookback_Put_Payoff(option, spot):
+    """
+    The payoff function for a European lookback put option. 
+
+    Args:
+        option:       the self variable from the Payoff class that aggregates the function.
+        spot (array): the price path of the underlying asset
+    """
+    
+    return maximum(option.strike - np.amin(spot), 0.0)
 
 
